@@ -1185,6 +1185,14 @@ export default grammar({
       )),
     )),
 
+    // An `else` branch split from its `if` by a directive, e.g.
+    // `if (a) {}` `#if DEBUG` `else if (b) {}` `#endif`. Only reachable as
+    // the content of a statement-level preprocessor block.
+    else_clause: $ => seq(
+      'else',
+      field('alternative', $.statement),
+    ),
+
     while_statement: $ => seq(
       'while',
       '(',
@@ -2163,7 +2171,7 @@ export default grammar({
     // Preprocessor
 
     ...preprocIf('', $ => $.declaration),
-    ...preprocIf('_in_top_level', $ => choice($._top_level_item_no_statement, $.statement)),
+    ...preprocIf('_in_top_level', $ => choice($._top_level_item_no_statement, $.statement, $.else_clause)),
     ...preprocIf('_in_expression', $ => $.expression, -2, false),
     ...preprocIf('_in_enum_member_declaration', $ => $.enum_member_declaration, 0, false),
     ...preprocIf('_in_attribute_list', $ => $.attribute_list, -1, false),
