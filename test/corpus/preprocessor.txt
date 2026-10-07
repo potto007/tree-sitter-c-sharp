@@ -218,3 +218,249 @@ Shebang directive
 
 (compilation_unit
   (shebang_directive))
+
+================================================================================
+If directive before else with is patterns
+================================================================================
+
+class C {
+  void M() {
+    if (x) {}
+#if DEBUG
+    else if (d is null) {}
+#endif
+    if (x) {}
+#if DEBUG
+    else if (d is T) {}
+#endif
+    if (x) {}
+#if DEBUG
+    else if (d is { a.b.Length: > 0 } && p) {}
+#endif
+    if (x) {}
+#if DEBUG
+    else if (d.t is A or B) {}
+#endif
+  }
+}
+
+--------------------------------------------------------------------------------
+
+(compilation_unit
+  (class_declaration
+    name: (identifier)
+    body: (declaration_list
+      (method_declaration
+        returns: (predefined_type)
+        name: (identifier)
+        parameters: (parameter_list)
+        body: (block
+          (if_statement
+            condition: (identifier)
+            consequence: (block))
+          (preproc_if
+            condition: (identifier)
+            (else_clause
+              alternative: (if_statement
+                condition: (is_pattern_expression
+                  expression: (identifier)
+                  pattern: (constant_pattern
+                    (null_literal)))
+                consequence: (block))))
+          (if_statement
+            condition: (identifier)
+            consequence: (block))
+          (preproc_if
+            condition: (identifier)
+            (else_clause
+              alternative: (if_statement
+                condition: (is_pattern_expression
+                  expression: (identifier)
+                  pattern: (constant_pattern
+                    (identifier)))
+                consequence: (block))))
+          (if_statement
+            condition: (identifier)
+            consequence: (block))
+          (preproc_if
+            condition: (identifier)
+            (else_clause
+              alternative: (if_statement
+                condition: (binary_expression
+                  left: (is_pattern_expression
+                    expression: (identifier)
+                    pattern: (recursive_pattern
+                      (property_pattern_clause
+                        (subpattern
+                          (member_access_expression
+                            expression: (member_access_expression
+                              expression: (identifier)
+                              name: (identifier))
+                            name: (identifier))
+                          (relational_pattern
+                            (integer_literal))))))
+                  right: (identifier))
+                consequence: (block))))
+          (if_statement
+            condition: (identifier)
+            consequence: (block))
+          (preproc_if
+            condition: (identifier)
+            (else_clause
+              alternative: (if_statement
+                condition: (is_pattern_expression
+                  expression: (member_access_expression
+                    expression: (identifier)
+                    name: (identifier))
+                  pattern: (or_pattern
+                    left: (constant_pattern
+                      (identifier))
+                    right: (constant_pattern
+                      (identifier))))
+                consequence: (block)))))))))
+
+================================================================================
+If directive before else without is pattern
+================================================================================
+
+class C {
+  void M() {
+    if (x) {}
+#if DEBUG
+    else if (p) {}
+#endif
+  }
+}
+
+--------------------------------------------------------------------------------
+
+(compilation_unit
+  (class_declaration
+    name: (identifier)
+    body: (declaration_list
+      (method_declaration
+        returns: (predefined_type)
+        name: (identifier)
+        parameters: (parameter_list)
+        body: (block
+          (if_statement
+            condition: (identifier)
+            consequence: (block))
+          (preproc_if
+            condition: (identifier)
+            (else_clause
+              alternative: (if_statement
+                condition: (identifier)
+                consequence: (block)))))))))
+
+================================================================================
+If and else directives around else branches
+================================================================================
+
+class C {
+  void M() {
+    if (x) {}
+#if DEBUG
+    else if (d is null) { a(); }
+#elif TRACE
+    else { b(); }
+#else
+    else c();
+#endif
+  }
+}
+
+--------------------------------------------------------------------------------
+
+(compilation_unit
+  (class_declaration
+    name: (identifier)
+    body: (declaration_list
+      (method_declaration
+        returns: (predefined_type)
+        name: (identifier)
+        parameters: (parameter_list)
+        body: (block
+          (if_statement
+            condition: (identifier)
+            consequence: (block))
+          (preproc_if
+            condition: (identifier)
+            (else_clause
+              alternative: (if_statement
+                condition: (is_pattern_expression
+                  expression: (identifier)
+                  pattern: (constant_pattern
+                    (null_literal)))
+                consequence: (block
+                  (expression_statement
+                    (invocation_expression
+                      function: (identifier)
+                      arguments: (argument_list))))))
+            alternative: (preproc_elif
+              condition: (identifier)
+              (else_clause
+                alternative: (block
+                  (expression_statement
+                    (invocation_expression
+                      function: (identifier)
+                      arguments: (argument_list)))))
+              alternative: (preproc_else
+                (else_clause
+                  alternative: (expression_statement
+                    (invocation_expression
+                      function: (identifier)
+                      arguments: (argument_list))))))))))))
+
+================================================================================
+If directive around whole if statement with else
+================================================================================
+
+class C {
+  void M() {
+    if (x) {} else if (d is { a: > 0 } && p) {}
+#if DEBUG
+    if (d is { a: > 0 }) {} else {}
+#endif
+  }
+}
+
+--------------------------------------------------------------------------------
+
+(compilation_unit
+  (class_declaration
+    name: (identifier)
+    body: (declaration_list
+      (method_declaration
+        returns: (predefined_type)
+        name: (identifier)
+        parameters: (parameter_list)
+        body: (block
+          (if_statement
+            condition: (identifier)
+            consequence: (block)
+            alternative: (if_statement
+              condition: (binary_expression
+                left: (is_pattern_expression
+                  expression: (identifier)
+                  pattern: (recursive_pattern
+                    (property_pattern_clause
+                      (subpattern
+                        (identifier)
+                        (relational_pattern
+                          (integer_literal))))))
+                right: (identifier))
+              consequence: (block)))
+          (preproc_if
+            condition: (identifier)
+            (if_statement
+              condition: (is_pattern_expression
+                expression: (identifier)
+                pattern: (recursive_pattern
+                  (property_pattern_clause
+                    (subpattern
+                      (identifier)
+                      (relational_pattern
+                        (integer_literal))))))
+              consequence: (block)
+              alternative: (block))))))))
